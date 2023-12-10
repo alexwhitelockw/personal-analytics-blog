@@ -10,6 +10,7 @@ website:
         href: https://github.com/alexwhitelockw
       - icon: linkedin
         href: www.linkedin.com/in/alexander-whitelock-wainwright
+  google-analytics: "G-95CSX18B3H"
 format:
   html:
     theme: lux

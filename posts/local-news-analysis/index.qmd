@@ -43,7 +43,7 @@ article_counts_year <-
 
 We can start by exploring the number of articles published per year to see whether there are any trends.
 
-The earliest year we have is `r min(article_content[, article_year])` and the most recent year is, obviously, `r max(article_content[, article_year])`. The article counts for each year were `r article_counts_year[article_year == min(article_content[, article_year]), N]` and `r article_counts_year[article_year == max(article_content[, article_year]), N]`, respectively. This equates to a `r round( ((article_counts_year[article_year == max(article_content[, article_year]), N] - article_counts_year[article_year == min(article_content[, article_year]), N]) / article_counts_year[article_year == min(article_content[, article_year]), N]) * 100, 1)`\% increase in articles published. One likely explanation for this sharp rise is the shift away from print media. In `r min(article_content[, article_year])`, articles were probably more commonly published in print rather than on the website. Over time, this dynamic changed as print media gave way to digital platforms, leading to the observed increase in article counts.
+The earliest year we have is `r min(article_content[, article_year])` and the most recent year is, obviously, `r max(article_content[, article_year])`. The article counts for each year were `r article_counts_year[article_year == min(article_content[, article_year]), N]` and `r article_counts_year[article_year == max(article_content[, article_year]), N]`, respectively. This equates to a `r round( ((article_counts_year[article_year == max(article_content[, article_year]), N] - article_counts_year[article_year == min(article_content[, article_year]), N]) / article_counts_year[article_year == min(article_content[, article_year]), N]) * 100, 1)`% increase in articles published. One likely explanation for this sharp rise is the shift away from print media. In `r min(article_content[, article_year])`, articles were probably more commonly published in print rather than on the website. Over time, this dynamic changed as print media gave way to digital platforms, leading to the observed increase in article counts.
 
 The ensuing plot substantiates the previously mentioned explanation, revealing a discernible upward trend from 2004 to 2015. This trajectory not only persists beyond 2015 but becomes more pronounced.
 
@@ -87,5 +87,3 @@ article_counts_rolling_averages |>
   facet_wrap(~article_year,
              scales = "free_x")
 ```
-
-

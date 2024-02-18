@@ -1,0 +1,16 @@
+{
+  "hash": "4ef9aa9b57eea1907d425d63f92dc412",
+  "result": {
+    "markdown": "---\ntitle: \"TidyTuesday: Holiday Episodes\"\ndescription: \"\"\nauthor: \"Alex Wainwright\"\ndate: 2023-12-10\ntitle-block-banner-color: \"white\"\ncategories:\ndraft: true\nfig-width: 6\nfig-asp: 0.618\nfig-align: center\nout-width: \"70%\"\n---\n\n::: {.cell}\n\n```{.r .cell-code}\nlibrary(data.table)\nlibrary(ggplot2)\nlibrary(tidytuesdayR)\n\ntuesdata <- \n    tt_load('2023-12-19')\n```\n\n::: {.cell-output .cell-output-stderr}\n```\n--- Compiling #TidyTuesday Information for 2023-12-19 ----\n```\n:::\n\n::: {.cell-output .cell-output-stderr}\n```\n--- There are 2 files available ---\n```\n:::\n\n::: {.cell-output .cell-output-stderr}\n```\n--- Starting Download ---\n```\n:::\n\n::: {.cell-output .cell-output-stderr}\n```\n--- Download complete ---\n```\n:::\n\n```{.r .cell-code}\nholiday_episodes <- \n    tuesdata$holiday_episodes |>\n    as.data.table()\n\nholiday_episode_genres <- \n    tuesdata$holiday_episode_genres |>\n    as.data.table()\n```\n:::\n\n::: {.cell}\n\n```{.r .cell-code}\nholiday_episodes[, \n    distance_from_parent_rating := abs(parent_average_rating - average_rating)]\n\nholiday_episodes$distance_ranking <-\n    frankv(\n        holiday_episodes,\n        cols = \"distance_from_parent_rating\", \n        order = -1, \n        ties.method = \"dense\")\n\nholiday_episodes[, shortened_title := substring(simple_title, 1, 40)]\n```\n:::\n\n::: {.cell}\n\n```{.r .cell-code}\nholiday_episodes[is.element(distance_ranking, seq_along(1:10))] |>\n    ggplot() +\n    geom_segment(\n        aes(x = parent_average_rating, xend = average_rating, \n            y = shortened_title, yend = shortened_title),\n            linewidth = 2) +\n    geom_point(\n        aes(x = parent_average_rating, \n            y = reorder(\n                shortened_title, distance_ranking),\n            colour = \"Parent Show Rating\"),\n            size = 8) +\n    geom_point(\n        aes(x = average_rating, \n            y = reorder(\n                shortened_title, distance_ranking),\n            colour = \"Episode Rating\"),\n            size = 8) +\n    theme_bw() +\n    theme(\n        legend.position = \"bottom\"\n    ) +\n    labs(\n        x = \"Weighted Average Rating\",\n        y = NULL,\n        colour = NULL\n    ) +\n    scale_colour_manual(\n        values = c(\n            \"Parent Show Rating\" = \"#bc4749\",\n            \"Episode Rating\" = \"#386641\" \n        )\n    )\n```\n\n::: {.cell-output-display}\n![](index_files/figure-html/unnamed-chunk-3-1.png){width=576}\n:::\n:::",
+    "supporting": [
+      "index_files"
+    ],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}

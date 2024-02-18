@@ -1,0 +1,94 @@
+---
+title: "Groundhog Day Predictions"
+description: "A quick exploration of news articles I scraped."
+author: "Alex Wainwright"
+date: 2024-01-31
+title-block-banner-color: "white"
+categories:
+  - analysis
+  - descriptive statistics
+freeze: true
+draft: true
+---
+
+```{r libraries}
+# Libraries -------------------
+
+library(data.table)
+library(flextable)
+library(stringr)
+library(tidytuesdayR)
+```
+
+```{r read_data}
+tuesdata <- tt_load('2024-01-30')
+```
+
+```{r summarise_predictions}
+
+groundhog_predictions <-
+  tuesdata$predictions |>
+  as.data.table()
+
+groundhog_prediction_shadow_proportions <- 
+  groundhog_predictions[, 
+                        .(proportion_shadow = round(mean(shadow == TRUE, na.rm = T) * 100, 2)), 
+                        by = id]
+
+```
+
+```{r}
+
+groundhog_details <-
+  tuesdata$groundhogs |>
+  as.data.table()
+
+groundhog_details <-
+  groundhog_details[groundhog_prediction_shadow_proportions, on = "id"]
+
+```
+
+```{r}
+
+if (length(dir("groundhog_images/")) == 0) {
+  groundhog_images <-
+    groundhog_details[, .(image)]
+
+  lapply(groundhog_images$image, function (x) {
+    groundhog_name <- str_extract(x, "[a-z-]+.jpeg")
+    download.file(x, destfile = paste0("groundhog_images/", groundhog_name))
+  })
+}
+
+groundhog_details[, image_file_path := paste0("groundhog_images/", slug, ".jpeg")]
+setorderv(groundhog_details, cols = "proportion_shadow", order = -1)
+
+flextable(
+  groundhog_details, 
+  col_keys = c("image_file_path", "name", "city", "region", "country", "proportion_shadow")) |>
+  set_header_labels(
+    values = c(
+      "image_file_path" = "",
+      "name" = "Name",
+      "city" = "City",
+      "region" = "Region",
+      "country" = "Country",
+      "proportion_shadow" = "Saw its Shadow (%)"
+    )
+  ) |>
+  colformat_image(
+    i = 1:75,
+    j = 1,
+    width = 1,
+    height = 1
+  ) |>
+  align(
+    i = 1:75,
+    j = 6,
+    align = "center"
+  ) |>
+  autofit()
+
+
+  
+```

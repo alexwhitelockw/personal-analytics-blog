@@ -11,7 +11,7 @@
     "href": "index.html",
     "title": "Posts",
     "section": "",
-    "text": "Exploring New Article Posts: Part 1\n\n\n\n\n\n\n\nanalysis\n\n\ndescriptive statistics\n\n\n\n\nA quick exploration of news articles I scraped.\n\n\n\n\n\n\nDec 10, 2023\n\n\nAlex Wainwright\n\n\n\n\n\n\nNo matching items"
+    "text": "Cheat Your Way to Rom-Com Mastery: Unleashing Chat-GPT on the Buzzfeed Quiz\n\n\n\n\n\n\n\nGenerative AI\n\n\nBuzzfeed\n\n\n\n\nHow to take advantage of Generative AI to complete a romcom quiz.\n\n\n\n\n\n\nFeb 18, 2024\n\n\nAlex Wainwright\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nExploring New Article Posts: Part 1\n\n\n\n\n\n\n\nanalysis\n\n\ndescriptive statistics\n\n\n\n\nA quick exploration of news articles I scraped.\n\n\n\n\n\n\nDec 10, 2023\n\n\nAlex Wainwright\n\n\n\n\n\n\nNo matching items"
   },
   {
     "objectID": "about.html",
@@ -19,5 +19,40 @@
     "title": "About",
     "section": "",
     "text": "About this blog"
+  },
+  {
+    "objectID": "posts/buzzfeed-romcom-quiz/index.html",
+    "href": "posts/buzzfeed-romcom-quiz/index.html",
+    "title": "Cheat Your Way to Rom-Com Mastery: Unleashing Chat-GPT on the Buzzfeed Quiz",
+    "section": "",
+    "text": "Romcoms are not my forte so a Buzzfeed quiz to guess film titles based on a bad description is a recipe for disaster. The good thing, however, is that it presents a great use case for taking advantage of Generative AI (e.g., Chat-GPT)."
+  },
+  {
+    "objectID": "posts/buzzfeed-romcom-quiz/index.html#aim",
+    "href": "posts/buzzfeed-romcom-quiz/index.html#aim",
+    "title": "Cheat Your Way to Rom-Com Mastery: Unleashing Chat-GPT on the Buzzfeed Quiz",
+    "section": "Aim",
+    "text": "Aim\nNot only do we want to leverage Generative AI to complete the 15 item quiz, but we want to automate the answering of each question. That is, we want to identify each item, extract the bad description, submit this to Chat-GPT, obtain an answer, submit the answer to Buzzfeed, and eventually obtain our final score. Setting this up probably took longer than manually completing the quiz, but let’s gloss over that point."
+  },
+  {
+    "objectID": "posts/buzzfeed-romcom-quiz/index.html#how",
+    "href": "posts/buzzfeed-romcom-quiz/index.html#how",
+    "title": "Cheat Your Way to Rom-Com Mastery: Unleashing Chat-GPT on the Buzzfeed Quiz",
+    "section": "How",
+    "text": "How\nFor this project, we use the OpenAI and Playwright packages. The OpenAI package allows us to interact with both the Chat-GPT 3.5 and 4 end-points, for which we submit out bad descriptions to. Playwright will automate our browser interactions to emulate a quiz taker.\nThe steps in the script are as follows:\n\nWe are using a synchronous instance of Playwright, which we direct to the quiz page.\nOn the quiz page, we need to locate the quiz section that contains the 15 items, which is achieved by page.locator(\".question__iRCfm\").all(). This is locating the named class element and returning the list of elements contained within (i.e., the individual quiz items).\nFor each quiz item, we extract the inner text (i.e., the bad description).\nWe then setup Chat-GPT. The prompt used was as follows:\n\nI’m going to give you a description of an actual film. I want you to give me the answer. Provide just the film title, nothing else.\n\nWe are explicitly telling Chat-GPT to just provide the movie title based on the description. Without this, Chat-GPT would provide its reasoning on how it got to this answer, which is irrelevant for our purpose.\nWe extract the Chat-GPT answer, find the answer box for the quiz item, and click guess.\nAt this point, the guess will be correct and we can move on to the next item. In the event the answer is incorrect, the quiz allows us to re-attempt our answer. For this setup, we’re only allowing Chat-GPT to have one attempt at answering the question so we find the I give up! button and click it, leading us onto the next item.\nAfter we’ve answered each item, the quiz will generate our score. We used the Playwright screenshot function to capture the scorecard, which tells us how many items we got correct and how we compared to others.\n\n\nfrom dotenv import load_dotenv\nfrom openai import OpenAI\nimport os\nfrom playwright.sync_api import sync_playwright\n\nload_dotenv()\n\nif __name__ == \"__main__\":\n\n    client = OpenAI(\n        api_key=os.environ.get(\"OPEN_AI_KEY\"),\n    )\n\n    with sync_playwright() as p:\n        browser = p.chromium.launch(headless=True)\n        page = browser.new_page()\n        page.goto(\n            \"https://www.buzzfeed.com/elizabeth_cotton/rom-com-movies-bad-descriptions-quiz\")\n        \n        question_elements = (\n            page\n            .locator(\".question__iRCfm\")\n            .all()\n        )\n\n        for question_element in question_elements:\n            \n            question_text = (\n                question_element\n                .locator(\".questionTileTitle__NxVlZ\")\n                .inner_text()\n            )\n\n            # Submit Question to Chat-GPT -----------------\n\n            chat_gpt_messages = [\n                {\n                    \"role\": \"system\",\n                    \"content\": \"I'm going to give you a description of an actual film. I want you to give me the answer. Provide just the film title, nothing else.\",\n                },\n                {\n                    \"role\": \"user\",\n                    \"content\": question_text\n                },\n            ]\n\n            chat_completion = client.chat.completions.create(\n                messages=chat_gpt_messages,\n                model=\"gpt-3.5-turbo-0125\",\n            )\n\n            chat_gpt_answer = (\n                chat_completion\n                .model_dump()[\"choices\"][0][\"message\"][\"content\"]\n            )\n\n            # Identify Question Answer Box ------\n\n            question_answer = (\n                question_element\n                .get_by_label(\"Your Answer\")\n                .fill(chat_gpt_answer)\n            )\n\n            (\n                question_element\n                .get_by_role(\"button\", name=\"Guess\")\n                .click()\n            )\n\n            give_up_button = (\n                question_element\n                .get_by_role(\"button\", name=\"I give up!\")\n            )\n\n            if give_up_button.is_visible():\n                give_up_button.click()\n\n        \n        (\n            page\n            .locator(\".gradient__R2MwP\")\n            .screenshot(path=\"output/buzzfeed_romcom_decscription_quiz/chat_gpt_3_scorecard.png\")\n        )"
+  },
+  {
+    "objectID": "posts/buzzfeed-romcom-quiz/index.html#results",
+    "href": "posts/buzzfeed-romcom-quiz/index.html#results",
+    "title": "Cheat Your Way to Rom-Com Mastery: Unleashing Chat-GPT on the Buzzfeed Quiz",
+    "section": "Results",
+    "text": "Results\nBoth Chat-GPT 3.5 and 4 were tested. Each performed far better than me 😅. Moreover, we see that Chat-GPT 4 outperformed 3.5 in identifying romcoms based on bad descriptions alone.\n\n\n\nChat-GPT 3.5 results on the romcom bad description movie quiz. The model performed well with a score of 10 out of 15, which is better than 68% of all other quiz-takers.\n\n\n\n\n\nChat-GPT 4 results on the romcom bad description movie quiz. The model performed well with a score of 12 out of 15, which is better both better than Chat-GPT 3.5 and better than 90% of all other quiz-takers."
+  },
+  {
+    "objectID": "posts/buzzfeed-romcom-quiz/index.html#conclusion",
+    "href": "posts/buzzfeed-romcom-quiz/index.html#conclusion",
+    "title": "Cheat Your Way to Rom-Com Mastery: Unleashing Chat-GPT on the Buzzfeed Quiz",
+    "section": "Conclusion",
+    "text": "Conclusion\nIn conclusion, the experiment showcases the relative ease with which individuals can leverage Generative AI to essentially cheat on quizzes. While this capability may seem impressive, it poses significant risks, particularly in educational settings where tests and online quizzes are vulnerable to exploitation. Even with Chat-GPT 3.5, which performs admirably in our contrived example despite not matching the capabilities of version 4, the potential for abuse is evident. Moreover, the accessibility of Chat-GPT 3.5, being freely available, exacerbates concerns regarding the integrity of current assessment methods. It underscores the pressing need for robust security measures and ethical considerations to mitigate the misuse of AI technology in educational and other domains."
   }
 ]

@@ -19,6 +19,7 @@ library(knitr)
 ```
 
 ```{r}
+
 article_content <-
     fread("data/local_news_archive.csv")
 
@@ -29,6 +30,9 @@ article_content[,
 article_content[,
   article_date_time_rounded := format.Date(ARTICLE_DATE_TIME, "%Y-%m-%d")
 ]
+
+article_content <-
+  article_content[!is.na(ARTICLE_DATE_TIME)]
 
 ```
 
@@ -69,15 +73,19 @@ As opposed to raw counts, we can look at rolling averages (14 days in this case)
 As we can see from the plot from around 2007 onward, publications throughout the year are relatively stable and rarely exceed 20 publications on average. Other notable points to consider are 2004 and the latter part of 2005/start of 2006. Regarding 2004, it is clear that only articles for part of the year were available and subsequently extracted. As for 2005 and 2006, there isn't a reason that we can immediately discern that could explain the large fluctuations in counts. We leave this for the next post.
 
 ```{r, warning=FALSE}
-article_counts_rolling_averages <-
-  article_content[, .(N = .N), by = c("article_date_time_rounded", "article_year")] |>
-  _[, rolling_count_avg := frollmean(N, n = 14)]
+article_counts <-
+  article_content[, .(N = .N), by = c("article_date_time_rounded", "article_year")]
 
+setorder(article_counts, article_date_time_rounded)
+  
+article_counts_rolling_averages <-
+  article_counts[, rolling_count_avg := frollmean(N, n = 14)]
+  
 article_counts_rolling_averages |>
   ggplot(aes(x = as.Date(article_date_time_rounded),
-             y = rolling_count_avg)) +
-  geom_line(aes(group = article_year),
-            colour = "#FA7070") +
+             y = rolling_count_avg,
+             group = article_year)) +
+  geom_line(colour = "#FA7070") +
   labs(x = NULL,
        y = "Count",
        title = "14-Day Rolling Average Counts") +

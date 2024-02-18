@@ -12,4 +12,4 @@ about:
       href: https://github.com/alexwhitelockw
 ---
 
-About this blog
+I am an experienced Researcher and Data Scientist specializing in psychometrics, learning analytics, and ethical implementation within higher education. With roles at the Cabinet Office, Tetra Pak, Deloitte, Monash University, and the University of Liverpool, I've contributed to assessment integrity, automated data pipelines, financial data integrity, student retention, and stakeholder expectations towards learning analytics. Proficient in R and Python, I'm committed to leveraging data ethically to transform education.

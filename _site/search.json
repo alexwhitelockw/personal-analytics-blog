@@ -1,26 +1,5 @@
 [
   {
-    "objectID": "posts/local-news-analysis/index.html",
-    "href": "posts/local-news-analysis/index.html",
-    "title": "Exploring New Article Posts: Part 1",
-    "section": "",
-    "text": "I’ve migrated over to Quarto for the purposes of blogging. This has resulted in a loss of old posts. Therefore, I’m starting over from scratch with an initial post of articles I scraped from a local news outlet.\n\nlibrary(data.table)\nlibrary(ggplot2)\nlibrary(knitr)\n\n\narticle_content <-\n    fread(\"data/local_news_archive.csv\")\n\narticle_content[,\n  article_year := format.Date(ARTICLE_DATE_TIME, \"%Y\")\n]\n\narticle_content[,\n  article_date_time_rounded := format.Date(ARTICLE_DATE_TIME, \"%Y-%m-%d\")\n]\n\narticle_content <-\n  article_content[!is.na(ARTICLE_DATE_TIME)]\n\n\nArticle Counts\n\narticle_counts_year <-\n  article_content[, \n                .(N = .N),\n                by = \"article_year\"] \n\nWe can start by exploring the number of articles published per year to see whether there are any trends.\nThe earliest year we have is 2004 and the most recent year is, obviously, 2023. The article counts for each year were 1356 and 4534, respectively. This equates to a 234.4% increase in articles published. One likely explanation for this sharp rise is the shift away from print media. In 2004, articles were probably more commonly published in print rather than on the website. Over time, this dynamic changed as print media gave way to digital platforms, leading to the observed increase in article counts.\nThe ensuing plot substantiates the previously mentioned explanation, revealing a discernible upward trend from 2004 to 2015. This trajectory not only persists beyond 2015 but becomes more pronounced.\n\narticle_counts_year |>\n  ggplot(aes(x = article_year,\n             y = N)) +\n  geom_col(colour = \"#557C55\",\n           fill = \"#F2FFE9\") +\n  labs(\n    x = NULL,\n    y = \"Count\",\n    title = \"Article Counts by Year\",\n    subtitle = \"The number of articles published per year has increased. It is important to note that 2023\\n only includes articles up until mid November.\"\n  ) +\n  theme_bw()\n\n\n\n\nLooking at article publications by year offered some insights, but it can be expanded upon by exploring publications at a more granular level. We do that next.\nAs opposed to raw counts, we can look at rolling averages (14 days in this case) for article publications. A rolling average is used to smooth out the trends, which could otherwise be distorted by short-term fluctuations.\nAs we can see from the plot from around 2007 onward, publications throughout the year are relatively stable and rarely exceed 20 publications on average. Other notable points to consider are 2004 and the latter part of 2005/start of 2006. Regarding 2004, it is clear that only articles for part of the year were available and subsequently extracted. As for 2005 and 2006, there isn’t a reason that we can immediately discern that could explain the large fluctuations in counts. We leave this for the next post.\n\narticle_counts <-\n  article_content[, .(N = .N), by = c(\"article_date_time_rounded\", \"article_year\")]\n\nsetorder(article_counts, article_date_time_rounded)\n  \narticle_counts_rolling_averages <-\n  article_counts[, rolling_count_avg := frollmean(N, n = 14)]\n  \narticle_counts_rolling_averages |>\n  ggplot(aes(x = as.Date(article_date_time_rounded),\n             y = rolling_count_avg,\n             group = article_year)) +\n  geom_line(colour = \"#FA7070\") +\n  labs(x = NULL,\n       y = \"Count\",\n       title = \"14-Day Rolling Average Counts\") +\n  scale_x_date(date_breaks = \"2 months\",\n               date_labels = \"%b\") +\n  theme_bw() +\n  facet_wrap(~article_year,\n             scales = \"free_x\")"
-  },
-  {
-    "objectID": "index.html",
-    "href": "index.html",
-    "title": "Posts",
-    "section": "",
-    "text": "Cheat Your Way to Rom-Com Mastery: Unleashing Chat-GPT on the Buzzfeed Quiz\n\n\n\n\n\n\n\nGenerative AI\n\n\nBuzzfeed\n\n\n\n\nHow to take advantage of Generative AI to complete a romcom quiz.\n\n\n\n\n\n\nFeb 18, 2024\n\n\nAlex Wainwright\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nExploring New Article Posts: Part 1\n\n\n\n\n\n\n\nanalysis\n\n\ndescriptive statistics\n\n\n\n\nA quick exploration of news articles I scraped.\n\n\n\n\n\n\nDec 10, 2023\n\n\nAlex Wainwright\n\n\n\n\n\n\nNo matching items"
-  },
-  {
-    "objectID": "about.html",
-    "href": "about.html",
-    "title": "About",
-    "section": "",
-    "text": "About this blog"
-  },
-  {
     "objectID": "posts/buzzfeed-romcom-quiz/index.html",
     "href": "posts/buzzfeed-romcom-quiz/index.html",
     "title": "Cheat Your Way to Rom-Com Mastery: Unleashing Chat-GPT on the Buzzfeed Quiz",
@@ -54,5 +33,26 @@
     "title": "Cheat Your Way to Rom-Com Mastery: Unleashing Chat-GPT on the Buzzfeed Quiz",
     "section": "Conclusion",
     "text": "Conclusion\nIn conclusion, the experiment showcases the relative ease with which individuals can leverage Generative AI to essentially cheat on quizzes. While this capability may seem impressive, it poses significant risks, particularly in educational settings where tests and online quizzes are vulnerable to exploitation. Even with Chat-GPT 3.5, which performs admirably in our contrived example despite not matching the capabilities of version 4, the potential for abuse is evident. Moreover, the accessibility of Chat-GPT 3.5, being freely available, exacerbates concerns regarding the integrity of current assessment methods. It underscores the pressing need for robust security measures and ethical considerations to mitigate the misuse of AI technology in educational and other domains."
+  },
+  {
+    "objectID": "posts/local-news-analysis/index.html",
+    "href": "posts/local-news-analysis/index.html",
+    "title": "Exploring New Article Posts: Part 1",
+    "section": "",
+    "text": "I’ve migrated over to Quarto for the purposes of blogging. This has resulted in a loss of old posts. Therefore, I’m starting over from scratch with an initial post of articles I scraped from a local news outlet.\n\nlibrary(data.table)\nlibrary(ggplot2)\nlibrary(knitr)\n\n\narticle_content <-\n    fread(\"data/local_news_archive.csv\")\n\narticle_content[,\n  article_year := format.Date(ARTICLE_DATE_TIME, \"%Y\")\n]\n\narticle_content[,\n  article_date_time_rounded := format.Date(ARTICLE_DATE_TIME, \"%Y-%m-%d\")\n]\n\narticle_content <-\n  article_content[!is.na(ARTICLE_DATE_TIME)]\n\n\nArticle Counts\n\narticle_counts_year <-\n  article_content[, \n                .(N = .N),\n                by = \"article_year\"] \n\nWe can start by exploring the number of articles published per year to see whether there are any trends.\nThe earliest year we have is 2004 and the most recent year is, obviously, 2023. The article counts for each year were 1356 and 4534, respectively. This equates to a 234.4% increase in articles published. One likely explanation for this sharp rise is the shift away from print media. In 2004, articles were probably more commonly published in print rather than on the website. Over time, this dynamic changed as print media gave way to digital platforms, leading to the observed increase in article counts.\nThe ensuing plot substantiates the previously mentioned explanation, revealing a discernible upward trend from 2004 to 2015. This trajectory not only persists beyond 2015 but becomes more pronounced.\n\narticle_counts_year |>\n  ggplot(aes(x = article_year,\n             y = N)) +\n  geom_col(colour = \"#557C55\",\n           fill = \"#F2FFE9\") +\n  labs(\n    x = NULL,\n    y = \"Count\",\n    title = \"Article Counts by Year\",\n    subtitle = \"The number of articles published per year has increased. It is important to note that 2023\\n only includes articles up until mid November.\"\n  ) +\n  theme_bw()\n\n\n\n\nLooking at article publications by year offered some insights, but it can be expanded upon by exploring publications at a more granular level. We do that next.\nAs opposed to raw counts, we can look at rolling averages (14 days in this case) for article publications. A rolling average is used to smooth out the trends, which could otherwise be distorted by short-term fluctuations.\nAs we can see from the plot from around 2007 onward, publications throughout the year are relatively stable and rarely exceed 20 publications on average. Other notable points to consider are 2004 and the latter part of 2005/start of 2006. Regarding 2004, it is clear that only articles for part of the year were available and subsequently extracted. As for 2005 and 2006, there isn’t a reason that we can immediately discern that could explain the large fluctuations in counts. We leave this for the next post.\n\narticle_counts <-\n  article_content[, .(N = .N), by = c(\"article_date_time_rounded\", \"article_year\")]\n\nsetorder(article_counts, article_date_time_rounded)\n  \narticle_counts_rolling_averages <-\n  article_counts[, rolling_count_avg := frollmean(N, n = 14)]\n  \narticle_counts_rolling_averages |>\n  ggplot(aes(x = as.Date(article_date_time_rounded),\n             y = rolling_count_avg,\n             group = article_year)) +\n  geom_line(colour = \"#FA7070\") +\n  labs(x = NULL,\n       y = \"Count\",\n       title = \"14-Day Rolling Average Counts\") +\n  scale_x_date(date_breaks = \"2 months\",\n               date_labels = \"%b\") +\n  theme_bw() +\n  facet_wrap(~article_year,\n             scales = \"free_x\")"
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Posts",
+    "section": "",
+    "text": "Cheat Your Way to Rom-Com Mastery: Unleashing Chat-GPT on the Buzzfeed Quiz\n\n\n\n\n\n\n\nGenerative AI\n\n\nBuzzfeed\n\n\n\n\nHow to take advantage of Generative AI to complete a romcom quiz.\n\n\n\n\n\n\nFeb 18, 2024\n\n\nAlex Wainwright\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nExploring New Article Posts: Part 1\n\n\n\n\n\n\n\nanalysis\n\n\ndescriptive statistics\n\n\n\n\nA quick exploration of news articles I scraped.\n\n\n\n\n\n\nDec 10, 2023\n\n\nAlex Wainwright\n\n\n\n\n\n\nNo matching items"
+  },
+  {
+    "objectID": "about.html",
+    "href": "about.html",
+    "title": "About",
+    "section": "",
+    "text": "About this blog"
   }
 ]

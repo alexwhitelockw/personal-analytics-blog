@@ -137,9 +137,9 @@ if __name__ == "__main__":
 
 Both Chat-GPT 3.5 and 4 were tested. Each performed far better than me 😅. Moreover, we see that Chat-GPT 4 outperformed 3.5 in identifying romcoms based on *bad descriptions* alone.
 
-![Chat-GPT 3.5 results on the romcom bad description movie quiz. The model performed well with a score of 10 out of 15, which is better than 68% of all other quiz-takers.](/_site/posts/buzzfeed-romcom-quiz/quiz_screenshots/chat_gpt_3_scorecard.png)
+![Chat-GPT 3.5 results on the romcom bad description movie quiz. The model performed well with a score of 10 out of 15, which is better than 68% of all other quiz-takers.](quiz_screenshots/chat_gpt_3_scorecard.png){fig-align="center"}
 
-![Chat-GPT 4 results on the romcom bad description movie quiz. The model performed well with a score of 12 out of 15, which is better both better than Chat-GPT 3.5 and better than 90% of all other quiz-takers.](/_site/posts/buzzfeed-romcom-quiz/quiz_screenshots/chat_gpt_4_scorecard.png)
+![Chat-GPT 4 results on the romcom bad description movie quiz. The model performed well with a score of 12 out of 15, which is better both better than Chat-GPT 3.5 and better than 90% of all other quiz-takers.](quiz_screenshots/chat_gpt_4_scorecard.png){fig-align="center"}
 
 ## Conclusion
 

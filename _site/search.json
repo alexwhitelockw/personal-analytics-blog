@@ -46,13 +46,41 @@
     "href": "index.html",
     "title": "Posts",
     "section": "",
-    "text": "Cheat Your Way to Rom-Com Mastery: Unleashing Chat-GPT on the Buzzfeed Quiz\n\n\n\n\n\n\n\nGenerative AI\n\n\nBuzzfeed\n\n\n\n\nHow to take advantage of Generative AI to complete a romcom quiz.\n\n\n\n\n\n\nFeb 18, 2024\n\n\nAlex Wainwright\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nExploring New Article Posts: Part 1\n\n\n\n\n\n\n\nanalysis\n\n\ndescriptive statistics\n\n\n\n\nA quick exploration of news articles I scraped.\n\n\n\n\n\n\nDec 10, 2023\n\n\nAlex Wainwright\n\n\n\n\n\n\nNo matching items"
+    "text": "Cheat Your Way to Rom-Com Mastery: Unleashing Chat-GPT on the Buzzfeed Quiz\n\n\n\n\n\n\n\nGenerative AI\n\n\nBuzzfeed\n\n\n\n\nHow to take advantage of Generative AI to complete a romcom quiz.\n\n\n\n\n\n\nFeb 18, 2024\n\n\nAlex Wainwright\n\n\n\n\n\n\n  \n\n\n\n\nExploring the Culinary Frontier: Using Generative AI to Conquer BuzzFeed’s National Dishes Quiz\n\n\n\n\n\n\n\nGenerative AI\n\n\nBuzzfeed\n\n\n\n\nAnother foray into the ease of using Generative AI to complete a Buzzfeed quiz.\n\n\n\n\n\n\nFeb 18, 2024\n\n\nAlex Wainwright\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nExploring New Article Posts: Part 1\n\n\n\n\n\n\n\nanalysis\n\n\ndescriptive statistics\n\n\n\n\nA quick exploration of news articles I scraped.\n\n\n\n\n\n\nDec 10, 2023\n\n\nAlex Wainwright\n\n\n\n\n\n\nNo matching items"
   },
   {
     "objectID": "about.html",
     "href": "about.html",
     "title": "About",
     "section": "",
-    "text": "About this blog"
+    "text": "I am an experienced Researcher and Data Scientist specializing in psychometrics, learning analytics, and ethical implementation within higher education. With roles at the Cabinet Office, Tetra Pak, Deloitte, Monash University, and the University of Liverpool, I’ve contributed to assessment integrity, automated data pipelines, financial data integrity, student retention, and stakeholder expectations towards learning analytics. Proficient in R and Python, I’m committed to leveraging data ethically to transform education."
+  },
+  {
+    "objectID": "posts/buzzfeed-nationaldish-quiz/index.html",
+    "href": "posts/buzzfeed-nationaldish-quiz/index.html",
+    "title": "Exploring the Culinary Frontier: Using Generative AI to Conquer BuzzFeed’s National Dishes Quiz",
+    "section": "",
+    "text": "In the previous post, I showed how Generative AI could be used to complete a Buzzfeed quiz. In the latter example, we answered questions based just on a description alone. The results were impressive, showing how Chat-GPT can easily complete such a quiz with very minor prompting.\nIn this post, however, we change things slightly. Instead of typing in an answer into a box, we will present Chat-GPT with four possible answers to select from. We used Buzzfeed’s National Dish quiz for this demonstration."
+  },
+  {
+    "objectID": "posts/buzzfeed-nationaldish-quiz/index.html#how",
+    "href": "posts/buzzfeed-nationaldish-quiz/index.html#how",
+    "title": "Exploring the Culinary Frontier: Using Generative AI to Conquer BuzzFeed’s National Dishes Quiz",
+    "section": "How",
+    "text": "How\nWe replicate the setup from last time. Using Playwright package to navigate the page to selection questions and responses, and the OpenAI package to interact with Chat-GPT. We’re only using Chat-GPT 4 on this occasion, as we previously saw how well it performs relative to Chat-GPT 3.5.\nThe only real difference is in what we submit to Chat-GPT:\n\nThe prompt now tells Chat-GPT that it will be given a question and four possible answers to choose from.\nThe message we send to Chat-GPT contains the question and the four possible items.\n\n\nfrom dotenv import load_dotenv\nfrom openai import OpenAI\nimport os\nfrom playwright.sync_api import sync_playwright\nimport re\n\nload_dotenv()\n\nif __name__ == \"__main__\":\n\n    client = OpenAI(\n        api_key=os.environ.get(\"OPEN_AI_KEY\"),\n    )\n\n    with sync_playwright() as p:\n        browser = p.chromium.launch(headless=False)\n        page = browser.new_page()\n        page.goto(\n            \"https://www.buzzfeed.com/aglover/national-dish-geography-quiz\")\n        \n        (\n            page\n            .get_by_role(\"button\", name=\"Reject All\")\n            .click()\n        )\n        \n        quiz_elements = (\n            page\n            .locator(\".question__iRCfm\")\n            .all()\n        )\n\n        for quiz_element in quiz_elements:\n            \n            question_text = (\n                quiz_element\n                .locator(\".questionTextTitle__VZVh1\")\n                .inner_text()\n            )\n\n            question_answers = \"\\n\".join(\n                (\n                    quiz_element\n                    .locator(\"li\")\n                    .all_inner_texts()\n                )\n            )\n\n            # Submit Question to Chat-GPT -----------------\n\n            chat_gpt_messages = [\n                {\n                    \"role\": \"system\",\n                    \"content\": \"I'm going to give you a question about national dishes, plus four possible answers. I want you to give me the answer. Provide just the country name, nothing else.\",\n                },\n                {\n                    \"role\": \"user\",\n                    \"content\": f\"{question_text}\\n{question_answers}\"\n                },\n            ]\n\n            chat_completion = client.chat.completions.create(\n                messages=chat_gpt_messages,\n                model=\"gpt-4-0125-preview\",\n            )\n\n            chat_gpt_answer = (\n                chat_completion\n                .model_dump()[\"choices\"][0][\"message\"][\"content\"]\n            )\n            \n            # Select answer based on Chat-GPT response ----\n\n            (\n                quiz_element\n                .locator(\"li\")\n                .filter(\n                    has_text=re.compile(f\"^{chat_gpt_answer}$\")\n                )\n                .click()\n            )\n        \n        (\n            page\n            .locator(\n                \".gradient__R2MwP\"\n            )\n            .screenshot(\n                path=\"output/buzzfeed_national_dish_quiz/chat_gpt_4_scorecard.png\"\n            )\n        )"
+  },
+  {
+    "objectID": "posts/buzzfeed-nationaldish-quiz/index.html#results",
+    "href": "posts/buzzfeed-nationaldish-quiz/index.html#results",
+    "title": "Exploring the Culinary Frontier: Using Generative AI to Conquer BuzzFeed’s National Dishes Quiz",
+    "section": "Results",
+    "text": "Results\nAs expected, Chat-GPT 4 does exceedingly well (far better than how I would score). In this case, it scored 8 out of a possible 10 points, placing it in the top 2% of quiz-takers."
+  },
+  {
+    "objectID": "posts/buzzfeed-nationaldish-quiz/index.html#conclusion",
+    "href": "posts/buzzfeed-nationaldish-quiz/index.html#conclusion",
+    "title": "Exploring the Culinary Frontier: Using Generative AI to Conquer BuzzFeed’s National Dishes Quiz",
+    "section": "Conclusion",
+    "text": "Conclusion\nThis is just a fun Buzzfeed quiz, but it reiterates the problem that Generative AI will/is having on assessments. It leaves me wondering how standardised assessments will adapt to the risk that Generative AI poses. Moreover, it raises ethical issues in the use of Generative AI in educational- and recruitment-based contexts. Nevertheless, the models are not perfect. We dropped 2 points in this quiz so Generative AI is not infallible, which means standardized tests won’t just see more perfect scores, but the overall performance levels are likely to rise. Perhaps monitoring pass rates over time is required, with a view of identifying spikes in the number of individuals passing."
   }
 ]

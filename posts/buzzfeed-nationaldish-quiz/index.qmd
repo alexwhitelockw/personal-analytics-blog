@@ -1,0 +1,135 @@
+---
+title: "Exploring the Culinary Frontier: Using Generative AI to Conquer BuzzFeed's National Dishes Quiz"
+description: "Another foray into the ease of using Generative AI to complete a Buzzfeed quiz."
+author: "Alex Wainwright"
+date: 2024-02-18
+title-block-banner-color: "white"
+categories:
+  - Generative AI
+  - Buzzfeed
+freeze: true
+---
+
+## Background
+
+In the previous post, I showed how Generative AI could be used to complete a Buzzfeed quiz. In the latter example, we answered questions based just on a description alone. The results were impressive, showing how Chat-GPT can easily complete such a quiz with very minor prompting.
+
+In this post, however, we change things slightly. Instead of typing in an answer into a box, we will present Chat-GPT with four possible answers to select from. We used Buzzfeed's [National Dish](https://www.buzzfeed.com/aglover/national-dish-geography-quiz) quiz for this demonstration.
+
+## How
+
+We replicate the setup from last time. Using Playwright package to navigate the page to selection questions and responses, and the OpenAI package to interact with Chat-GPT. We're only using Chat-GPT 4 on this occasion, as we previously saw how well it performs relative to Chat-GPT 3.5.
+
+The only real difference is in what we submit to Chat-GPT:
+
+1.  The prompt now tells Chat-GPT that it will be given a question and four possible answers to choose from.
+
+2.  The message we send to Chat-GPT contains the question and the four possible items.
+
+```{python}
+
+#| eval: false
+
+from dotenv import load_dotenv
+from openai import OpenAI
+import os
+from playwright.sync_api import sync_playwright
+import re
+
+load_dotenv()
+
+if __name__ == "__main__":
+
+    client = OpenAI(
+        api_key=os.environ.get("OPEN_AI_KEY"),
+    )
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=False)
+        page = browser.new_page()
+        page.goto(
+            "https://www.buzzfeed.com/aglover/national-dish-geography-quiz")
+        
+        (
+            page
+            .get_by_role("button", name="Reject All")
+            .click()
+        )
+        
+        quiz_elements = (
+            page
+            .locator(".question__iRCfm")
+            .all()
+        )
+
+        for quiz_element in quiz_elements:
+            
+            question_text = (
+                quiz_element
+                .locator(".questionTextTitle__VZVh1")
+                .inner_text()
+            )
+
+            question_answers = "\n".join(
+                (
+                    quiz_element
+                    .locator("li")
+                    .all_inner_texts()
+                )
+            )
+
+            # Submit Question to Chat-GPT -----------------
+
+            chat_gpt_messages = [
+                {
+                    "role": "system",
+                    "content": "I'm going to give you a question about national dishes, plus four possible answers. I want you to give me the answer. Provide just the country name, nothing else.",
+                },
+                {
+                    "role": "user",
+                    "content": f"{question_text}\n{question_answers}"
+                },
+            ]
+
+            chat_completion = client.chat.completions.create(
+                messages=chat_gpt_messages,
+                model="gpt-4-0125-preview",
+            )
+
+            chat_gpt_answer = (
+                chat_completion
+                .model_dump()["choices"][0]["message"]["content"]
+            )
+            
+            # Select answer based on Chat-GPT response ----
+
+            (
+                quiz_element
+                .locator("li")
+                .filter(
+                    has_text=re.compile(f"^{chat_gpt_answer}$")
+                )
+                .click()
+            )
+        
+        (
+            page
+            .locator(
+                ".gradient__R2MwP"
+            )
+            .screenshot(
+                path="output/buzzfeed_national_dish_quiz/chat_gpt_4_scorecard.png"
+            )
+        )
+
+```
+
+## Results
+
+As expected, Chat-GPT 4 does exceedingly well (far better than how I would score). In this case, it scored 8 out of a possible 10 points, placing it in the top 2% of quiz-takers.
+
+![](chat_gpt_4_scorecard.png){fig-align="center"}
+
+## Conclusion
+
+This is just a fun Buzzfeed quiz, but it reiterates the problem that Generative AI will/is having on assessments. It leaves me wondering how standardised assessments will adapt to the risk that Generative AI poses. Moreover, it raises ethical issues in the use of Generative AI in educational- and recruitment-based contexts. Nevertheless, the models are not perfect. We dropped 2 points in this quiz so Generative AI is not infallible, which means standardized tests won't just see more perfect scores, but the overall performance levels are likely to rise. Perhaps monitoring pass rates over time is required, with a view of identifying spikes in the number of individuals passing.
